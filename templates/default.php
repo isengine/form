@@ -6,9 +6,9 @@ use is\Helpers\System;
 use is\Helpers\Objects;
 use is\Helpers\Strings;
 
-$instance = $object -> get('instance');
-$sets = &$object -> settings;
+$instance = $this -> get('instance');
+$sets = &$this -> settings;
 
-$object -> printForm();
+$this -> printForm();
 
 ?>
