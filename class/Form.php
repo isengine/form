@@ -30,7 +30,8 @@ use is\Components\Uri;
 
 class Form extends Master {
 	
-	public $returns;
+	public $returns; // это возвращенные значения из адресной строки
+	public $wrappers; // это массив блоков, которые используются для обертки
 	
 	public function launch() {
 		
@@ -63,6 +64,8 @@ class Form extends Master {
 		
 		foreach ($sets['data'] as $item) {
 			
+			$content = null;
+			
 			$attr = $item;
 			unset($attr['data'], $attr['options']);
 			
@@ -85,8 +88,6 @@ class Form extends Master {
 			//$this -> elements[ $item['name'] ] = new Dom($tag);
 			
 			if (System::typeIterable($item['data'])) {
-				
-				$content = null;
 				
 				if ($tag === 'div') {
 					
@@ -185,7 +186,7 @@ class Form extends Master {
 						$it -> addContent($i);
 						if (
 							(
-								$k === $item['options']['default'] &&
+								(string) $k === (string) $item['options']['default'] &&
 								!$returns['value'] &&
 								!$returns['array']
 							) ||
@@ -216,32 +217,33 @@ class Form extends Master {
 				
 			} else {
 				
-				$print = null;
-				
 				if (System::typeIterable($attr)) {
 					foreach ($attr as $kk => $ii) {
 						if ($ii === true) {
 							$this -> eget($item['name']) -> addAttr($kk);
-						} else {
+						} elseif (System::set($ii)) {
 							$this -> eget($item['name']) -> addCustom($kk, $ii);
 						}
 					}
 					unset($kk, $ii);
 				}
 				
-				if (System::set($item['options']['default'])) {
-					$this -> eget($item['name']) -> addCustom('placeholder', $item['options']['default']);
-				}
 				if (System::set($returns['value'])) {
 					$this -> eget($item['name']) -> addCustom('value', $returns['value']);
 				}
+				if (System::set($item['options']['default'])) {
+					$this -> eget($item['name']) -> addCustom($item['name'] === 'submit' ? 'value' : 'placeholder', $item['options']['default']);
+				}
 				
-				$content = $item['options']['before'] . $print . $item['options']['after'];
-				unset($print);
+				$content = $item['options']['before'] . $item['options']['after'];
 				
 			}
 			
 			$this -> eget($item['name']) -> addContent($content);
+			
+			if ($item['options']['block']) {
+				$this -> wrappers[ $item['name'] ] = $item['options']['block'];
+			}
 			
 		}
 		unset($item);
@@ -254,10 +256,18 @@ class Form extends Master {
 			return;
 		}
 		
-		foreach ($this -> elements as $item) {
-			$item -> print();
+		$index = -1;
+		foreach ($this -> elements as $key => $item) {
+			$index++;
+			if ($key === 'form') {
+				continue;
+			} elseif ($this -> wrappers[$key]) {
+				$this -> block( $this -> wrappers[$key], [$item, $this -> settings['data'][$index]] );
+			} else {
+				$item -> print();
+			}
 		}
-		unset($item);
+		unset($key, $item);
 		
 	}
 	
