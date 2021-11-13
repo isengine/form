@@ -28,6 +28,14 @@ use is\Components\Uri;
 // соответственно, именно в настройках процессов апи мы задаем
 // очистку, валидацию и прочее
 
+// позднее мы добавили еще несколько типов полей:
+// instance - передает instance модуля, также должен иметь name instance
+// antispam - создает пустое поле для доп.защиты от спам-ботов на скрытое поле, которое должно быть оставлено пустым, боты его как правило заполняют
+// позднее мы добавим еще несколько типов полей:
+// для капчи
+// также для обработки поля - сделаем класс со стандартными обработчиками,
+// который можно будет наследовать и расширять
+
 class Form extends Master {
 	
 	public $returns; // это возвращенные значения из адресной строки
@@ -233,6 +241,15 @@ class Form extends Master {
 				}
 				if (System::set($item['options']['default'])) {
 					$this -> eget($item['name']) -> addCustom($item['name'] === 'submit' ? 'value' : 'placeholder', $item['options']['default']);
+				}
+				
+				if ($item['type'] === 'instance') {
+					$this -> eget($item['name']) -> addCustom('type', 'text');
+					$this -> eget($item['name']) -> addCustom('value', $this -> instance);
+				}
+				if ($item['type'] === 'antispam') {
+					$this -> eget($item['name']) -> addCustom('type', 'text');
+					$this -> eget($item['name']) -> addCustom('value', null);
 				}
 				
 				$content = $item['options']['before'] . $item['options']['after'];
