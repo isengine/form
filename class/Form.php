@@ -5,6 +5,7 @@ namespace is\Masters\Modules\Isengine;
 use is\Helpers\System;
 use is\Helpers\Objects;
 use is\Helpers\Strings;
+use is\Helpers\Prepare;
 
 use is\Masters\Modules\Master;
 use is\Masters\View;
@@ -30,7 +31,7 @@ use is\Components\Uri;
 
 // позднее мы добавили еще несколько типов полей:
 // instance - передает instance модуля, также должен иметь name instance
-// antispam - создает пустое поле для доп.защиты от спам-ботов на скрытое поле, которое должно быть оставлено пустым, боты его как правило заполняют
+// spam - создает пустое поле для доп.защиты от спам-ботов на скрытое поле, которое должно быть оставлено пустым, боты его как правило заполняют
 // позднее мы добавим еще несколько типов полей:
 // для капчи
 // также для обработки поля - сделаем класс со стандартными обработчиками,
@@ -48,6 +49,10 @@ class Form extends Master {
 		$uri = Uri::getInstance();
 		$this -> returns = $uri -> getData();
 		unset($uri);
+		
+		Objects::recurse($this -> returns, function($i){
+			return Prepare::urldecode($i);
+		});
 		
 		$sets = &$this -> settings;
 		
@@ -237,7 +242,11 @@ class Form extends Master {
 				}
 				
 				if (System::set($returns['value'])) {
-					$this -> eget($item['name']) -> addCustom('value', $returns['value']);
+					if ($tag === 'textarea') {
+						$content = $returns['value'];
+					} else {
+						$this -> eget($item['name']) -> addCustom('value', $returns['value']);
+					}
 				}
 				if (System::set($item['options']['default'])) {
 					$this -> eget($item['name']) -> addCustom($item['name'] === 'submit' ? 'value' : 'placeholder', $item['options']['default']);
@@ -247,12 +256,12 @@ class Form extends Master {
 					$this -> eget($item['name']) -> addCustom('type', 'text');
 					$this -> eget($item['name']) -> addCustom('value', $this -> instance);
 				}
-				if ($item['type'] === 'antispam') {
+				if ($item['type'] === 'spam') {
 					$this -> eget($item['name']) -> addCustom('type', 'text');
 					$this -> eget($item['name']) -> addCustom('value', null);
 				}
 				
-				$content = $item['options']['before'] . $item['options']['after'];
+				$content = $item['options']['before'] . $content . $item['options']['after'];
 				
 			}
 			
