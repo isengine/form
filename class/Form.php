@@ -284,11 +284,19 @@ class Form extends Master {
 		
 		$index = -1;
 		foreach ($this -> elements as $key => $item) {
+			$blocks = $this -> wrappers[$key];
 			$index++;
 			if ($key === 'form') {
 				continue;
-			} elseif ($this -> wrappers[$key]) {
-				$this -> block( $this -> wrappers[$key], [$item, $this -> settings['data'][$index]] );
+			} elseif ($blocks) {
+				if (is_array($blocks)) {
+					foreach ($blocks as $i) {
+						$this -> block($i, [$item, $this -> settings['data'][$index]]);
+					}
+					unset($i);
+				} else {
+					$this -> block($blocks, [$item, $this -> settings['data'][$index]]);
+				}
 			} else {
 				$item -> print();
 			}
