@@ -320,6 +320,7 @@ class Form extends Master {
 		
 		Objects::each($sets['form'], function($i, $k){
 			$this -> eget('form') -> addCustom($k, $i);
+			return $i;
 		});
 		
 		$this -> eget('form') -> addCustom('method', $sets['method'] === 'post' || $sets['method'] === 'files' ? 'post' : 'get');
