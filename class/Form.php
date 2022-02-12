@@ -77,18 +77,37 @@ class Form extends Master {
 		
 		foreach ($sets['data'] as $item) {
 			
+			// объявляем конент - это будет встроенное содержимое элемента
+			
 			$content = null;
+			
+			// здесь объявляем атрибуты поля
 			
 			$attr = $item;
 			unset($attr['data'], $attr['options']);
 			
+			// если тип входит в группу тэгов (выше), то тег назначается согласно этому типу,
+			// иначе мы берем input для одиночных данных и div для группы/массива
+			
 			$tag = Objects::match($tags, $item['type']) ? $item['type'] : (System::typeIterable($item['data']) ? 'div' : 'input');
+			
+			// здесь мы берем значения для полей из адресной строки
+			// чтобы затем вставить их в форму
+			
 			$rval = $this -> returns[$item['name']];
 			$returns = [
 				'value' => !System::typeOf($rval, 'iterable') ? $rval : null,
 				'array' => System::typeOf($rval, 'iterable') ? $rval : []
 			];
 			unset($rval);
+			
+			// здесь мы заранее делаем из имени поля массив
+			// потому что здесь на самом деле будет использовано несколько однотипных полей
+			// и нужно, чтобы данные с них отправлялись тоже в виде массива
+			
+			// если хотите использовать поле input для массива значений,
+			// поставьте в настройках поля атрибут multiple
+			// сам массив можно поместить в раздел data
 			
 			if (
 				$attr['name'] &&
@@ -105,15 +124,16 @@ class Form extends Master {
 				if ($tag === 'div') {
 					
 					foreach ($item['data'] as $k => $i) {
+						
 						$it = new Dom('input');
-						$it -> addCustom('value', $k);
-						$it -> addContent($i);
+						
 						if (
-							(
-								$item['type'] === 'checkbox' ||
-								$item['type'] === 'radio'
-							) &&
-							(
+							$item['type'] === 'checkbox' ||
+							$item['type'] === 'radio'
+						) {
+							$it -> addCustom('value', $k);
+							//$it -> addContent($i);
+							if (
 								(
 									$k === $item['options']['default'] &&
 									!$returns['value'] &&
@@ -121,9 +141,11 @@ class Form extends Master {
 								) ||
 								$k === $returns['value'] ||
 								Objects::match($returns['array'], $k)
-							)
-						) {
-							$it -> addAttr('checked');
+							) {
+								$it -> addAttr('checked');
+							}
+						} else {
+							$it -> addCustom('value', $i);
 						}
 						
 						if (System::typeIterable($attr)) {
@@ -267,6 +289,9 @@ class Form extends Master {
 			
 			$this -> eget($item['name']) -> addContent($content);
 			
+			// здесь мы записываем блоки в свойство wrapper объекта
+			// дальше они будут браться оттуда
+			
 			if ($item['options']['block']) {
 				$this -> wrappers[ $item['name'] ] = $item['options']['block'];
 			}
@@ -284,11 +309,22 @@ class Form extends Master {
 		
 		$index = -1;
 		foreach ($this -> elements as $key => $item) {
+			
+			// здесь мы читаем блоки из свойства wrapper объекта
+			
 			$blocks = $this -> wrappers[$key];
+			
 			$index++;
 			if ($key === 'form') {
 				continue;
 			} elseif ($blocks) {
+				
+				// здесь фишка в том, что если заданы блоки,
+				// то идет их вызов, без печати
+				// блоки могут быть указаны как одиночное значение,
+				// так и массивом
+				// печать элемента должна идти в самом блоке
+				
 				if (is_array($blocks)) {
 					foreach ($blocks as $i) {
 						$this -> block($i, [$item, $this -> settings['data'][$index]]);
@@ -297,8 +333,14 @@ class Form extends Master {
 				} else {
 					$this -> block($blocks, [$item, $this -> settings['data'][$index]]);
 				}
+				
 			} else {
+				
+				// если блоки не заданы,
+				// идет печать элемента
+				
 				$item -> print();
+				
 			}
 		}
 		unset($key, $item);
