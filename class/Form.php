@@ -94,6 +94,13 @@ class Form extends Master {
 			// здесь мы берем значения для полей из адресной строки
 			// чтобы затем вставить их в форму
 			
+			// этот код ниже был добавлен из-за сбоя, который теперь устранен
+			// оставляем его на всякий случай
+			// предыдущий комментарий распространяется ниже
+			//if (System::typeOf($item['name'], 'iterable')) {
+			//	$item['name'] = Strings::join($item['name'], ':');
+			//}
+			
 			$rval = $this -> returns[$item['name']];
 			$returns = [
 				'value' => !System::typeOf($rval, 'iterable') ? $rval : null,
