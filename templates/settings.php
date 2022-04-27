@@ -8,14 +8,12 @@ use is\Helpers\Parser;
 use is\Components\State;
 
 $state = State::getInstance();
-$state -> set(
-	'form',
-	Parser::toJson(
-		Objects::remap(
-			$this -> settings['data'],
-			'name'
-		)
-	)
+$state->set(
+    'form',
+    Parser::toJson(
+        Objects::remap(
+            $this->settings['data'],
+            'name'
+        )
+    )
 );
-
-?>
