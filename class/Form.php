@@ -74,20 +74,28 @@ class Form extends Master
             return;
         }
 
-        foreach ($sets['data'] as $item) {
+        foreach ($sets['data'] as &$item) {
             // объявляем конент - это будет встроенное содержимое элемента
 
             $content = null;
 
             // здесь объявляем атрибуты поля
 
-            $item = Objects::merge(
+            $item = Objects::create(
                 [
-                    'type' => null,
-                    'data' => null,
                     'name' => null,
+                    'type' => null,
+                    'class' => null,
+                    'id' => null,
+                    'required' => null,
+                    'readonly' => null,
+                    'data' => null,
                     'options' => [
+                        'label' => null,
+                        'description' => null,
                         'default' => null,
+                        'match' => null,
+                        'prepare' => null,
                         'before' => null,
                         'after' => null,
                         'block' => null
@@ -300,10 +308,10 @@ class Form extends Master
             // дальше они будут браться оттуда
 
             if ($item['options']['block']) {
-                $this->wrappers[ $item['name'] ] = $item['options']['block'];
+                $this->wrappers[$item['name']] = $item['options']['block'];
             }
         }
-        unset($item);
+        //unset($item);
     }
 
     public function printFields()
@@ -315,18 +323,16 @@ class Form extends Master
         $index = -1;
         foreach ($this->elements as $key => $item) {
             // здесь мы читаем блоки из свойства wrapper объекта
-
-            $blocks = $this->wrappers[$key];
-
             $index++;
             if ($key === 'form') {
                 continue;
-            } elseif ($blocks) {
+            } elseif (!empty($this->wrappers[$key])) {
                 // здесь фишка в том, что если заданы блоки,
                 // то идет их вызов, без печати
                 // блоки могут быть указаны как одиночное значение,
                 // так и массивом
                 // печать элемента должна идти в самом блоке
+                $blocks = $this->wrappers[$key];
 
                 if (is_array($blocks)) {
                     foreach ($blocks as $i) {
