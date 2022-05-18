@@ -70,7 +70,10 @@ class Form extends Master
 
         $tags = ['select', 'textarea', 'list'];
 
-        if (!System::typeIterable($sets['data'])) {
+        if (
+            empty($sets['data']) ||
+            !System::typeIterable($sets['data'])
+        ) {
             return;
         }
 
@@ -358,7 +361,7 @@ class Form extends Master
 
         $sets = &$this->settings;
 
-        if (!$sets['api']) {
+        if (empty($sets['api'])) {
             return;
         }
 
